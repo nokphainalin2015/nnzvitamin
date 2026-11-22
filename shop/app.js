@@ -213,7 +213,7 @@ const vidCard = v => `<button class="vcard" data-vid="${esc(v.id)}" aria-label="
     <span class="vplay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
     <span class="vviews">▶ ${esc(v.views)}</span></div>
   <span class="vtitle">${esc(v.title||'ວິດີໂອຈາກ NNZ')}</span></button>`;
-// ເຕືອນມິດສາດ: ສະແດງເທື່ອທຳອິດທີ່ເປີດແອັບໃນແຕ່ລະມື້ ແລະ ກົດເບິ່ງໄດ້ອີກຈາກແຖບເທິງໜ້າຫຼັກ
+// ເຕືອນມິດສາດ: ແຖບແດງເທິງໜ້າຫຼັກ ກົດແລ້ວເປີດລາຍລະອຽດ (ບໍ່ເດັ້ງຂຶ້ນເອງ ຕາມເຈົ້າຂອງສັ່ງ 22/11)
 function openScam(){
   if(document.querySelector(".sheet.scam")) return;
   const sh = document.createElement("div"); sh.className="sheet scam"; sh.setAttribute("role","dialog"); sh.setAttribute("aria-modal","true"); sh.setAttribute("aria-label","ລະວັງມິດສາດ");
@@ -506,7 +506,6 @@ $("#proto").hidden = !CFG.sampleMode;
 $("#topWa").href = waLink("ສະບາຍດີ nnz ວິຕາມິນ ຂໍສອບຖາມສິນຄ້າ");
 render();
 document.addEventListener("click", e => { if(e.target.closest("[data-scam]")) openScam(); });
-(() => { const d = new Date().toISOString().slice(0,10); if(CFG.payName && store("nnz-scam") !== d){ store("nnz-scam", d); openScam(); } })();
 
 // ----- ໂຫຼດສິນຄ້າ: Google Sheet ກ່ອນ ຖ້າບໍ່ໄດ້ ໃຊ້ products.csv -----
 async function load(url){ const r = await fetch(url, {cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t = await r.text(); if(!/^\uFEFF?id,/.test(t)) throw new Error("not product csv"); return t; }
