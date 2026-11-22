@@ -17,7 +17,7 @@ const NEEDS = [
 ];
 const TYPE_LB = {supplement:"ວິຕາມິນ ແລະ ອາຫານເສີມ", beauty:"ເຄື່ອງສຳອາງ", perfume:"ນ້ຳຫອມ", sport:"ກິລາ ແລະ ໂປຣຕີນ", other:"ອື່ນໆ"};
 const DELIVERY = [
-  {id:"rider", lb:"ໄຣເດີສົ່ງພາຍໃນມື້", sub:"ນະຄອນຫຼວງວຽງຈັນ", fee:true},
+  {id:"rider", lb:"ໄຣເດີສົ່ງພາຍໃນມື້", sub:"ນະຄອນຫຼວງວຽງຈັນ · ພັກທຸກວັນອາທິດ", fee:true},
   {id:"hal", lb:"ຂົນສົ່ງ ຮຸ່ງອາລຸນ", sub:"ຕ່າງແຂວງ"},
   {id:"anousith", lb:"ຂົນສົ່ງ ອານຸສິດ", sub:"ຕ່າງແຂວງ"},
   {id:"mixay", lb:"ຂົນສົ່ງ ມີໄຊ", sub:"ຕ່າງແຂວງ"}
@@ -303,6 +303,7 @@ function promoInfo(){
   return {off: Math.min(P.off||0, t), msg:`ໃຊ້ໂຄດ ${String(P.code).toUpperCase()} ແລ້ວ · ຫຼຸດ ${kip(P.off)}`};
 }
 const payTotal = () => cartTotal() - promoInfo().off;
+const isSundayLA = () => { try{ return new Intl.DateTimeFormat("en-US",{weekday:"short",timeZone:"Asia/Vientiane"}).format(new Date())==="Sun"; }catch(e){ return new Date().getDay()===0; } };
 const shipFee = () => delivery==="rider" ? (+CFG.riderFee||0) : 0;
 const shipNote = () => !delivery ? "ຍັງບໍ່ເລືອກວິທີຈັດສົ່ງ" : delivery==="rider" ? (shipFee() ? kip(shipFee())+" (ທຸກບ່ອນໃນເມືອງ)" : "ແອັດມິນແຈ້ງ") : "ລູກຄ້າຈ່າຍເອງປາຍທາງ ຕາມບໍລິສັດຂົນສົ່ງ";
 const grandTotal = () => payTotal() + shipFee();
@@ -322,6 +323,7 @@ function renderCart(){
     ${promoInfo().off?`<div class="total" style="color:var(--leaf-deep)"><span>ສ່ວນຫຼຸດ (${esc(String(CFG.promo.code).toUpperCase())})</span><span class="num">−${kip(promoInfo().off)}</span></div>`:""}
     <div class="total"><span>ຄ່າສົ່ງ</span><span class="${shipFee()?"num":"shipnote"}">${shipFee() ? kip(shipFee()) : !delivery ? "ເລືອກວິທີສົ່ງຂ້າງລຸ່ມ" : delivery==="rider" ? "ແອັດມິນແຈ້ງ" : "ຈ່າຍປາຍທາງ"}</span></div>
     <div class="total grand"><span><b>ຍອດຕ້ອງຈ່າຍ</b></span><span class="num"><b>${kip(grandTotal())}</b></span></div>
+    ${delivery==="rider" && isSundayLA() ? `<p class="note" style="margin:0;color:#b3122a;font-weight:600">ມື້ນີ້ວັນອາທິດ ໄຣເດີພັກ · ອໍເດີມື້ນີ້ ຈະສົ່ງໃນວັນຈັນ</p>` : ""}
     ${delivery && delivery!=="rider" ? `<p class="note" style="margin:0">ຄ່າຂົນສົ່ງຕ່າງແຂວງ ຂຶ້ນກັບບໍລິສັດ ${esc((DELIVERY.find(x=>x.id===delivery)||{lb:""}).lb.replace("ຂົນສົ່ງ ",""))} · ລູກຄ້າຈ່າຍເອງປາຍທາງ ຕອນໄປຮັບເຄື່ອງ</p>` : ""}
     </div>
     <div class="fieldset" role="radiogroup" aria-label="ວິທີຈັດສົ່ງ"><b>ວິທີຈັດສົ່ງ</b>
