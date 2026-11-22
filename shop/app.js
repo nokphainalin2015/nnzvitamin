@@ -213,6 +213,30 @@ const vidCard = v => `<button class="vcard" data-vid="${esc(v.id)}" aria-label="
     <span class="vplay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
     <span class="vviews">▶ ${esc(v.views)}</span></div>
   <span class="vtitle">${esc(v.title||'ວິດີໂອຈາກ NNZ')}</span></button>`;
+// ເຕືອນມິດສາດ: ສະແດງເທື່ອທຳອິດທີ່ເປີດແອັບໃນແຕ່ລະມື້ ແລະ ກົດເບິ່ງໄດ້ອີກຈາກແຖບເທິງໜ້າຫຼັກ
+function openScam(){
+  if(document.querySelector(".sheet.scam")) return;
+  const sh = document.createElement("div"); sh.className="sheet scam"; sh.setAttribute("role","dialog"); sh.setAttribute("aria-modal","true"); sh.setAttribute("aria-label","ລະວັງມິດສາດ");
+  const wa = [CFG.whatsappShow, CFG.whatsappShow2].filter(Boolean).map(esc).join(" · ");
+  sh.innerHTML = `<div class="panel"><div class="grab"></div><div class="wrap scamw">
+    <div class="scamhead"><span aria-hidden="true">⚠️</span><h2>ລະວັງມິດສາດ ປອມເປັນຮ້ານ</h2></div>
+    <p>ໂອນເງິນເຂົ້າ <b>ຊື່ບັນຊີນີ້ຊື່ດຽວເທົ່ານັ້ນ</b></p>
+    <div class="scamname">${esc(CFG.payName||"")}</div>
+    <ul class="scamlist">
+      <li>❌ ແອັດມິນ <b>ບໍ່ເຄີຍ</b> ສົ່ງ QR ຫຼື ເລກບັນຊີອື່ນໃຫ້ໂອນ</li>
+      <li>❌ ຮ້ານ <b>ບໍ່ເຄີຍ</b> ຂໍລະຫັດ OTP ຫຼື ລະຫັດຜ່ານ</li>
+      <li>✅ ເວັບທາງການມີບ່ອນດຽວ: <b>nnzvitamin.com</b></li>
+      ${wa?`<li>✅ WhatsApp ທາງການ: <b class="num">${wa}</b></li>`:""}
+    </ul>
+    <p class="note" style="margin:0">ຖ້າມີຄົນໃຫ້ໂອນເຂົ້າຊື່ອື່ນ ຢ່າໂອນ · ໂທຖາມຮ້ານກ່ອນທຸກຄັ້ງ</p>
+    <button class="cta" data-x>ເຂົ້າໃຈແລ້ວ</button>
+  </div></div>`;
+  document.body.appendChild(sh); document.body.style.overflow="hidden";
+  const onKey = e => { if(e.key==="Escape") close(); };
+  const close = () => { sh.remove(); document.body.style.overflow=""; document.removeEventListener("keydown", onKey); };
+  document.addEventListener("keydown", onKey);
+  sh.addEventListener("click", e => { if(e.target===sh || e.target.closest("[data-x]")) close(); });
+}
 function openVideo(id){
   const v = V.find(x=>x.id===id); if(!v) return;
   const prods = (v.products||[]).map(pid=>P.find(p=>p.id===pid)).filter(Boolean);
@@ -241,6 +265,7 @@ function renderHome(){
   const trial = pick(p=>p.trial && p.type==="supplement"), perf = pick(p=>p.type==="perfume" && p.trial), beauty = pick(p=>p.type==="beauty");
   const rowSec = (title, need, arr, note="") => arr.length ? `<section><div class="sechead"><h2>${title}</h2><button class="more" data-need="${need}">ເບິ່ງທັງໝົດ</button></div>${note}<div class="row">${arr.map(card).join("")}</div></section>` : "";
   return `<div class="wrap">
+    ${CFG.payName?`<button class="scambar" data-scam><span aria-hidden="true">⚠️</span><span><b>ລະວັງມິດສາດ</b> · ໂອນເຂົ້າຊື່ <b>${esc(CFG.payName)}</b> ເທົ່ານັ້ນ</span><span class="go">›</span></button>`:""}
     <section><div class="sechead"><h2>ໝວດສິນຄ້າຍອດນິຍົມ</h2></div><div class="ccards">${CATS.map(catCard).join("")}</div><div class="cdots" aria-hidden="true"></div></section>
     <section><div class="sechead"><h2>ເລືອກຕາມຍີ່ຫໍ້</h2><button class="more" data-brands>ທຸກຍີ່ຫໍ້</button></div><div class="brow">${brandCounts().filter(([b])=>brandGroupOf(b)==="vit").slice(0,14).map(brandChip).join("")}</div></section>
     ${rowSec("🔥 ສິນຄ້າຂາຍດີ ທີ່ລູກຄ້າສັ່ງຫຼາຍທີ່ສຸດ","best",best,'<p class="note" style="margin:-4px 0 10px">ຈັດອັນດັບຈາກຍອດສັ່ງຊື້ຈິງຂອງຮ້ານ · ລູກຄ້າເລືອກຊື້ຊ້ຳຫຼາຍທີ່ສຸດ</p>')}
@@ -321,7 +346,7 @@ function renderCart(){
       <p class="note">ຊື່ບັນຊີ: ${esc(CFG.payName||"")} · ກວດຊື່ໃຫ້ກົງກ່ອນໂອນ</p>
       <a class="cta ghost" href="${esc(CFG.payQr)}" download="nnz-QR.jpg">ບັນທຶກຮູບ QR ໄວ້ສະແກນໃນແອັບທະນາຄານ</a>
       <p class="paystep"><b>3.</b> ກົດສົ່ງອໍເດີ ແລ້ວແນບຮູບສະລິບໃນ WhatsApp · ແອັດມິນກວດເງິນເຂົ້າບັນຊີແລ້ວຈຶ່ງສົ່ງເຄື່ອງ</p>
-      <div class="safe"><b>⚠ ກັນຖືກຫຼອກ</b><span>ຮ້ານຮັບເງິນເຂົ້າຊື່ <b>${esc(CFG.payName||"")}</b> ເທົ່ານັ້ນ. ແອັດມິນບໍ່ເຄີຍສົ່ງ QR ຫຼື ເລກບັນຊີອື່ນໃຫ້ໂອນ. ຖ້າມີຄົນຂໍໃຫ້ໂອນບ່ອນອື່ນ ໃຫ້ໂທຫາ ${esc(CFG.whatsappShow||"")} ກ່ອນ.</span></div>
+      <div class="safe"><b>⚠ ກັນຖືກຫຼອກ</b><span>ຮ້ານຮັບເງິນເຂົ້າຊື່ <b>${esc(CFG.payName||"")}</b> ເທົ່ານັ້ນ · ແອັດມິນບໍ່ເຄີຍສົ່ງ QR ຫຼື ເລກບັນຊີອື່ນໃຫ້ໂອນ · ຖ້າມີຄົນຂໍໃຫ້ໂອນບ່ອນອື່ນ ໃຫ້ໂທຫາ ${esc(CFG.whatsappShow||"")} ກ່ອນ</span></div>
     </div>`:''}
     <a class="cta wa" id="sendWa" href="${waLink(orderText())}" target="_blank" rel="noopener">ສົ່ງອໍເດີທາງ WhatsApp</a>
     <details><summary class="note">ຖ້າ WhatsApp ບໍ່ເປີດ ໃຫ້ຄັດລອກຂໍ້ຄວາມນີ້ໄປສົ່ງເອງ</summary>
@@ -480,6 +505,8 @@ $("#q").addEventListener("input", e => { query=e.target.value; if(query && tab!=
 $("#proto").hidden = !CFG.sampleMode;
 $("#topWa").href = waLink("ສະບາຍດີ nnz ວິຕາມິນ ຂໍສອບຖາມສິນຄ້າ");
 render();
+document.addEventListener("click", e => { if(e.target.closest("[data-scam]")) openScam(); });
+(() => { const d = new Date().toISOString().slice(0,10); if(CFG.payName && store("nnz-scam") !== d){ store("nnz-scam", d); openScam(); } })();
 
 // ----- ໂຫຼດສິນຄ້າ: Google Sheet ກ່ອນ ຖ້າບໍ່ໄດ້ ໃຊ້ products.csv -----
 async function load(url){ const r = await fetch(url, {cache:"no-store"}); if(!r.ok) throw new Error("HTTP "+r.status); const t = await r.text(); if(!/^\uFEFF?id,/.test(t)) throw new Error("not product csv"); return t; }
