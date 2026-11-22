@@ -120,7 +120,7 @@ function mergeVariants(rows){
 }
 
 let shown = 40, showBrands = false;
-let P = [], cart = store("nnz-cart") || [], tab = "home", filter = null, query = "", delivery = store("nnz-delivery") || "rider", pay = store("nnz-pay") || "qr", loadErr = "";
+let P = [], cart = store("nnz-cart") || [], tab = "home", filter = null, query = "", delivery = store("nnz-dl2") || "", pay = store("nnz-pay") || "qr", loadErr = "";
 
 function shapeOf(p){
   const n = p.find || "";
@@ -304,10 +304,10 @@ function promoInfo(){
 }
 const payTotal = () => cartTotal() - promoInfo().off;
 const shipFee = () => delivery==="rider" ? (+CFG.riderFee||0) : 0;
-const shipNote = () => delivery==="rider" ? (shipFee() ? kip(shipFee())+" (ທຸກບ່ອນໃນເມືອງ)" : "ແອັດມິນແຈ້ງ") : "ລູກຄ້າຈ່າຍເອງທີ່ສາຂາປາຍທາງ";
+const shipNote = () => !delivery ? "ຍັງບໍ່ເລືອກວິທີຈັດສົ່ງ" : delivery==="rider" ? (shipFee() ? kip(shipFee())+" (ທຸກບ່ອນໃນເມືອງ)" : "ແອັດມິນແຈ້ງ") : "ລູກຄ້າຈ່າຍເອງປາຍທາງ ຕາມບໍລິສັດຂົນສົ່ງ";
 const grandTotal = () => payTotal() + shipFee();
 function orderText(){
-  const d = DELIVERY.find(x=>x.id===delivery) || DELIVERY[0];
+  const d = DELIVERY.find(x=>x.id===delivery) || {id:'', lb:'ຍັງບໍ່ເລືອກ', sub:'-'};
   const lines = cart.map((l,i)=>`${i+1}. ${l.nm} (${l.opt}) x${l.qty} = ${kip(l.price*l.qty)}`).join("\n");
   return `APP · ອໍເດີໃໝ່ຈາກແອັບ nnz\nລະຫັດອໍເດີ: ${orderCode}\n${lines}\nລວມຄ່າສິນຄ້າ: ${kip(cartTotal())}\n${promoInfo().off?`ໂຄດສ່ວນຫຼຸດ: ${String(CFG.promo.code).toUpperCase()} −${kip(promoInfo().off)}\n`:""}ຄ່າສົ່ງ: ${shipNote()}\nຍອດຕ້ອງຈ່າຍ: ${kip(grandTotal())}\nຈັດສົ່ງ: ${d.lb} (${d.sub})\n${d.id==='rider'?'ທີ່ຢູ່ / ຈຸດສົ່ງ':'ສາຂາຂົນສົ່ງ ('+d.lb.replace('ຂົນສົ່ງ ','')+')'}: ${cust.place||''}\n\nຊື່: ${cust.name||''}\nເບີໂທ: ${cust.phone||''}\nຈ່າຍແບບ: ${pay==="qr"?"ສະແກນ QR (ແນບສະລິບ)":"ເກັບເງິນປາຍທາງ (COD)"}`;
 }
@@ -317,12 +317,19 @@ function renderCart(){
     <h2>ກະຕ່າ <span class="note num">(${cart.reduce((s,l)=>s+l.qty,0)} ຊິ້ນ)</span></h2>
     ${cart.map((l,i)=>{const p=P.find(x=>x.id===l.id)||{hue:0,nm:l.nm,en:""};return `<div class="line"><div class="mini">${pic(p)}</div><div class="info"><b>${esc(l.nm)}</b><span>${esc(l.opt)} · ${kip(l.price)}</span></div>
       <div class="qty"><button data-dec="${i}" aria-label="ຫຼຸດ">−</button><span>${l.qty}</span><button data-inc="${i}" aria-label="ເພີ່ມ">+</button></div></div>`}).join("")}
+    <div class="sumbox">
+    <div class="total"><span>ລວມຄ່າສິນຄ້າ</span><span class="num">${kip(cartTotal())}</span></div>
+    ${promoInfo().off?`<div class="total" style="color:var(--leaf-deep)"><span>ສ່ວນຫຼຸດ (${esc(String(CFG.promo.code).toUpperCase())})</span><span class="num">−${kip(promoInfo().off)}</span></div>`:""}
+    <div class="total"><span>ຄ່າສົ່ງ</span><span class="${shipFee()?"num":"shipnote"}">${shipFee() ? kip(shipFee()) : !delivery ? "ເລືອກວິທີສົ່ງຂ້າງລຸ່ມ" : delivery==="rider" ? "ແອັດມິນແຈ້ງ" : "ຈ່າຍປາຍທາງ"}</span></div>
+    <div class="total grand"><span><b>ຍອດຕ້ອງຈ່າຍ</b></span><span class="num"><b>${kip(grandTotal())}</b></span></div>
+    ${delivery && delivery!=="rider" ? `<p class="note" style="margin:0">ຄ່າຂົນສົ່ງຕ່າງແຂວງ ຂຶ້ນກັບບໍລິສັດ ${esc((DELIVERY.find(x=>x.id===delivery)||{lb:""}).lb.replace("ຂົນສົ່ງ ",""))} · ລູກຄ້າຈ່າຍເອງປາຍທາງ ຕອນໄປຮັບເຄື່ອງ</p>` : ""}
+    </div>
     <div class="fieldset" role="radiogroup" aria-label="ວິທີຈັດສົ່ງ"><b>ວິທີຈັດສົ່ງ</b>
       ${DELIVERY.map(d=>`<label class="radio" for="dl-${d.id}"><input type="radio" id="dl-${d.id}" name="dl" value="${d.id}" ${delivery===d.id?'checked':''}><span>${d.lb}<small>${d.sub} · ${d.fee ? (+CFG.riderFee ? "ຄ່າສົ່ງ "+kip(+CFG.riderFee)+" ທຸກບ່ອນໃນເມືອງ" : "ແອັດມິນແຈ້ງຄ່າສົ່ງ") : "ຄ່າຂົນສົ່ງ ຈ່າຍເອງປາຍທາງ"}</small></span></label>`).join("")}
     </div>
-    <div class="fieldset"><b>${delivery==="rider"?"ສົ່ງໃຫ້ໃສ":"ຝາກສາຂາໃດ"}</b>
-      <label class="fld"><span>${delivery==="rider"?"ທີ່ຢູ່ ຫຼື ຈຸດສົ່ງ (ບ້ານ, ເມືອງ, ຈຸດສັງເກດ)":"ຊື່ສາຂາ "+(DELIVERY.find(x=>x.id===delivery)||{lb:""}).lb.replace("ຂົນສົ່ງ ","")+" ທີ່ຈະໄປຮັບເຄື່ອງ (ແຂວງ, ເມືອງ, ສາຂາ)"}</span>
-        <input class="inp" data-cust="place" value="${esc(cust.place||"")}" placeholder="${delivery==="rider"?"ເຊັ່ນ ບ້ານໂພນທັນ ເມືອງໄຊເສດຖາ ໃກ້ຕະຫຼາດ":"ເຊັ່ນ ສາຂາ ປາກເຊ ແຂວງຈຳປາສັກ"}" autocomplete="street-address"></label>
+    <div class="fieldset"><b>${(delivery==="rider"||!delivery)?"ສົ່ງໃຫ້ໃສ":"ຝາກສາຂາໃດ"}</b>
+      <label class="fld"><span>${(delivery==="rider"||!delivery)?"ທີ່ຢູ່ ຫຼື ຈຸດສົ່ງ (ບ້ານ, ເມືອງ, ຈຸດສັງເກດ)":"ຊື່ສາຂາ "+(DELIVERY.find(x=>x.id===delivery)||{lb:""}).lb.replace("ຂົນສົ່ງ ","")+" ທີ່ຈະໄປຮັບເຄື່ອງ (ແຂວງ, ເມືອງ, ສາຂາ)"}</span>
+        <input class="inp" data-cust="place" value="${esc(cust.place||"")}" placeholder="${(delivery==="rider"||!delivery)?"ເຊັ່ນ ບ້ານໂພນທັນ ເມືອງໄຊເສດຖາ ໃກ້ຕະຫຼາດ":"ເຊັ່ນ ສາຂາ ປາກເຊ ແຂວງຈຳປາສັກ"}" autocomplete="street-address"></label>
       <label class="fld"><span>ຊື່ຜູ້ຮັບ</span><input class="inp" data-cust="name" value="${esc(cust.name||"")}" autocomplete="name"></label>
       <label class="fld"><span>ເບີໂທຜູ້ຮັບ</span><input class="inp" data-cust="phone" value="${esc(cust.phone||"")}" inputmode="tel" autocomplete="tel" placeholder="020 xxxx xxxx"></label>
     </div>
@@ -330,17 +337,12 @@ function renderCart(){
       <div class="promorow"><input class="inp" id="promoInp" value="${esc(promo)}" placeholder="ພິມໂຄດ ເຊັ່ນ ${esc(CFG.promo.code)}" autocapitalize="characters" autocomplete="off"><button class="cta ghost" data-promo>ໃຊ້ໂຄດ</button></div>
       ${promoInfo().msg?`<p class="note ${promoInfo().bad?"promobad":"promook"}" style="margin:0">${esc(promoInfo().msg)}</p>`:`<p class="note" style="margin:0">ລອງສັ່ງທາງແອັບ ຫຼຸດ ${kip(CFG.promo.off)} ເມື່ອຊື້ຄົບ ${kip(CFG.promo.min)}</p>`}
     </div>`:""}
-    <div class="total"><span>ລວມຄ່າສິນຄ້າ</span><span class="num">${kip(cartTotal())}</span></div>
-    ${promoInfo().off?`<div class="total" style="color:var(--leaf-deep)"><span>ສ່ວນຫຼຸດ (${esc(String(CFG.promo.code).toUpperCase())})</span><span class="num">−${kip(promoInfo().off)}</span></div>`:""}
-    <div class="total"><span>ຄ່າສົ່ງ</span><span class="num">${shipFee() ? kip(shipFee()) : (delivery==="rider" ? "ແອັດມິນແຈ້ງ" : "ຈ່າຍເອງປາຍທາງ")}</span></div>
-    <div class="total"><span><b>ຍອດຕ້ອງຈ່າຍ</b></span><span class="num"><b>${kip(grandTotal())}</b></span></div>
-    ${delivery!=="rider" ? `<p class="note">ຄ່າຂົນສົ່ງ ${esc((DELIVERY.find(x=>x.id===delivery)||{lb:""}).lb.replace("ຂົນສົ່ງ ",""))} ລູກຄ້າຈ່າຍເອງເມື່ອໄປຮັບເຄື່ອງທີ່ສາຂາ</p>` : ""}
     <div class="fieldset" role="radiogroup" aria-label="ວິທີຈ່າຍເງິນ"><b>ວິທີຈ່າຍເງິນ</b>
       <label class="radio" for="py-qr"><input type="radio" id="py-qr" name="py" value="qr" ${pay==="qr"?'checked':''}><span>ສະແກນ QR ຈ່າຍເລີຍ<small>OnePay · LAO QR · ຈ່າຍໄດ້ທຸກທະນາຄານ</small></span></label>
       <label class="radio" for="py-cod"><input type="radio" id="py-cod" name="py" value="cod" ${pay==="cod"?'checked':''}><span>ເກັບເງິນປາຍທາງ (COD)<small>ຈ່າຍເມື່ອຮັບເຄື່ອງ</small></span></label>
     </div>
     ${pay==="qr"&&CFG.payQr?`<div class="payqr">
-      <p class="paystep"><b>1.</b> ໂອນ <span class="num">${kip(grandTotal())}</span> ໃຫ້ກົງຍອດ${shipFee()?" (ລວມຄ່າສົ່ງແລ້ວ)":""}</p>
+      <p class="paystep"><b>1.</b> ${delivery ? `ໂອນ <span class="num">${kip(grandTotal())}</span> ໃຫ້ກົງຍອດ${shipFee()?" (ລວມຄ່າສົ່ງແລ້ວ)":" (ບໍ່ລວມຄ່າຂົນສົ່ງ ຈ່າຍປາຍທາງ)"}` : "ເລືອກວິທີຈັດສົ່ງກ່ອນ ຈຶ່ງຮູ້ຍອດທີ່ຕ້ອງໂອນ"}</p>
       <p class="paystep"><b>2.</b> ໃນຊ່ອງ <b>ໝາຍເຫດ / ເນື້ອໃນການໂອນ</b> ໃສ່ລະຫັດອໍເດີ <span class="ocode num">${esc(orderCode)}</span></p>
       <img src="${esc(CFG.payQr)}" alt="QR ຮັບເງິນ ${esc(CFG.payName||"")}" width="260" height="295">
       <p class="note">ຊື່ບັນຊີ: ${esc(CFG.payName||"")} · ກວດຊື່ໃຫ້ກົງກ່ອນໂອນ</p>
@@ -498,7 +500,8 @@ document.addEventListener("input", e => {
   const a = document.getElementById("sendWa"); if(a) a.href = waLink(orderText());
   const m = document.getElementById("msg"); if(m) m.value = orderText();
 });
-document.addEventListener("change", e => { if(e.target.name==="dl"){ delivery=e.target.value; store("nnz-delivery",delivery); render(); }
+document.addEventListener("click", e => { if(e.target.closest("#sendWa") && !delivery){ e.preventDefault(); toast("ກະລຸນາເລືອກວິທີຈັດສົ່ງກ່ອນ"); const f=document.querySelector('[aria-label="ວິທີຈັດສົ່ງ"]'); if(f) f.scrollIntoView({behavior:"smooth",block:"center"}); } }, true);
+document.addEventListener("change", e => { if(e.target.name==="dl"){ delivery=e.target.value; store("nnz-dl2",delivery); render(); }
   if(e.target.name==="py"){ pay=e.target.value; store("nnz-pay",pay); render(); } });
 $("#q").addEventListener("input", e => { query=e.target.value; if(query && tab!=="all") tab="all"; render(); });
 
