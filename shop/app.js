@@ -213,13 +213,13 @@ const vidCard = v => `<button class="vcard" data-vid="${esc(v.id)}" aria-label="
     <span class="vplay"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span>
     <span class="vviews">▶ ${esc(v.views)}</span></div>
   <span class="vtitle">${esc(v.title||'ວິດີໂອຈາກ NNZ')}</span></button>`;
-// ເຕືອນມິດສາດ: ແຖບແດງເທິງໜ້າຫຼັກ ກົດແລ້ວເປີດລາຍລະອຽດ (ບໍ່ເດັ້ງຂຶ້ນເອງ ຕາມເຈົ້າຂອງສັ່ງ 22/11)
+// ເຕືອນມິດສາຊີບ: ແຖບແດງເທິງໜ້າຫຼັກ ກົດແລ້ວເປີດລາຍລະອຽດ (ບໍ່ເດັ້ງຂຶ້ນເອງ ຕາມເຈົ້າຂອງສັ່ງ 22/11)
 function openScam(){
   if(document.querySelector(".sheet.scam")) return;
-  const sh = document.createElement("div"); sh.className="sheet scam"; sh.setAttribute("role","dialog"); sh.setAttribute("aria-modal","true"); sh.setAttribute("aria-label","ລະວັງມິດສາດ");
+  const sh = document.createElement("div"); sh.className="sheet scam"; sh.setAttribute("role","dialog"); sh.setAttribute("aria-modal","true"); sh.setAttribute("aria-label","ລະວັງມິດສາຊີບ");
   const wa = [CFG.whatsappShow, CFG.whatsappShow2].filter(Boolean).map(esc).join(" · ");
   sh.innerHTML = `<div class="panel"><div class="grab"></div><div class="wrap scamw">
-    <div class="scamhead"><span aria-hidden="true">⚠️</span><h2>ລະວັງມິດສາດ ປອມເປັນຮ້ານ</h2></div>
+    <div class="scamhead"><span aria-hidden="true">⚠️</span><h2>ລະວັງມິດສາຊີບ ປອມເປັນຮ້ານ</h2></div>
     <p>ໂອນເງິນເຂົ້າ <b>ຊື່ບັນຊີນີ້ຊື່ດຽວເທົ່ານັ້ນ</b></p>
     <div class="scamname">${esc(CFG.payName||"")}</div>
     <ul class="scamlist">
@@ -265,7 +265,7 @@ function renderHome(){
   const trial = pick(p=>p.trial && p.type==="supplement"), perf = pick(p=>p.type==="perfume" && p.trial), beauty = pick(p=>p.type==="beauty");
   const rowSec = (title, need, arr, note="") => arr.length ? `<section><div class="sechead"><h2>${title}</h2><button class="more" data-need="${need}">ເບິ່ງທັງໝົດ</button></div>${note}<div class="row">${arr.map(card).join("")}</div></section>` : "";
   return `<div class="wrap">
-    ${CFG.payName?`<button class="scambar" data-scam><span aria-hidden="true">⚠️</span><span><b>ລະວັງມິດສາດ</b> · ໂອນເຂົ້າຊື່ <b>${esc(CFG.payName)}</b> ເທົ່ານັ້ນ</span><span class="go">›</span></button>`:""}
+    ${CFG.payName?`<button class="scambar" data-scam><span aria-hidden="true">⚠️</span><span><b>ລະວັງມິດສາຊີບ</b> · ໂອນເຂົ້າຊື່ <b>${esc(CFG.payName)}</b> ເທົ່ານັ້ນ</span><span class="go">›</span></button>`:""}
     <section><div class="sechead"><h2>ໝວດສິນຄ້າຍອດນິຍົມ</h2></div><div class="ccards">${CATS.map(catCard).join("")}</div><div class="cdots" aria-hidden="true"></div></section>
     <section><div class="sechead"><h2>ເລືອກຕາມຍີ່ຫໍ້</h2><button class="more" data-brands>ທຸກຍີ່ຫໍ້</button></div><div class="brow">${brandCounts().filter(([b])=>brandGroupOf(b)==="vit").slice(0,14).map(brandChip).join("")}</div></section>
     ${rowSec("🔥 ສິນຄ້າຂາຍດີ ທີ່ລູກຄ້າສັ່ງຫຼາຍທີ່ສຸດ","best",best,'<p class="note" style="margin:-4px 0 10px">ຈັດອັນດັບຈາກຍອດສັ່ງຊື້ຈິງຂອງຮ້ານ · ລູກຄ້າເລືອກຊື້ຊ້ຳຫຼາຍທີ່ສຸດ</p>')}
