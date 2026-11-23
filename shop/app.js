@@ -282,12 +282,22 @@ function renderHome(){
     <p class="note" style="text-align:center">ສິນຄ້າທັງໝົດ <span class="num">${P.length.toLocaleString("en-US")}</span> ລາຍການ · ຄົ້ນຫາດ້ວຍຊື່ ຫຼື ຍີ່ຫໍ້ໄດ້ທາງເທິງ</p>
   </div>`;
 }
+// ໜ້າສິນຄ້າທັງໝົດ: ແຖວປັດໄດ້ ແຍກຕາມໝວດ ໃຫ້ລູກຄ້າເຫັນວ່າຮ້ານມີຫຍັງແດ່
+function catRows(){
+  return NEEDS.map(n => {
+    const arr = P.filter(p => n.id==="trial" ? !!p.trial : p.tags.includes(n.id)).sort((a,b)=>(b.stock?1:0)-(a.stock?1:0));
+    if(!arr.length) return "";
+    return `<section><div class="sechead"><h2>${esc(n.lb)} <span class="note num">(${arr.length})</span></h2><button class="more" data-need="${n.id}">ເບິ່ງທັງໝົດ</button></div><div class="row">${arr.slice(0,12).map(card).join("")}</div></section>`;
+  }).join("");
+}
 function renderAll(){
   const items = list();
   const nm = filter ? (filter.startsWith("b:") ? "ຍີ່ຫໍ້ "+filter.slice(2) : ((NEEDS.find(n=>n.id===filter)||{}).lb || {best:"ຂາຍດີ",sale:"ສິນຄ້າໂປຣໂມຊັ່ນ"}[filter] || (CATS.find(c=>c.id===filter)||{}).lb || "")) : "ສິນຄ້າທັງໝົດ";
   return `<div class="wrap">
     <div class="sechead"><h2>${esc(query?`ຜົນຄົ້ນຫາ "${query}"`:nm)}</h2>${filter||query?'<button class="more" data-clear>ລ້າງຕົວກອງ</button>':''}</div>
     ${filter&&filter.startsWith("b:")?`<button class="cta ghost" type="button" id="pickBrand" style="height:40px;font-size:14px">ເລືອກຍີ່ຫໍ້ອື່ນ ▾</button>`:`<div class="needs">${NEEDS.map(needBtn).join("")}</div>`}
+    ${!filter&&!query ? catRows() : ""}
+    ${!filter&&!query ? `<div class="sechead" style="margin-top:6px"><h2>ສິນຄ້າທັງໝົດ</h2></div>` : ""}
     <p class="note num" style="margin:0">${items.length.toLocaleString("en-US")} ລາຍການ</p>
     ${items.length?`<div class="grid">${items.slice(0,shown).map(card).join("")}</div>${items.length>shown?`<button class="cta ghost" data-more style="width:100%">ເບິ່ງເພີ່ມ (ເຫຼືອ <span class="num">${(items.length-shown).toLocaleString("en-US")}</span>)</button>`:''}`:`<div class="empty"><b>ບໍ່ພົບສິນຄ້າທີ່ຄົ້ນຫາ</b><span>ລອງພິມຊື່ອື່ນ ຫຼື ຖາມແອັດມິນທາງ WhatsApp</span></div>`}
   </div>`;
