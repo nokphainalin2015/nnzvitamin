@@ -278,13 +278,14 @@ function renderHome(){
     ${rowSec("ສິນຄ້າໃໝ່","new",news)}
     ${rowSec("ນ້ຳຫອມ ມີແບ່ງ 10ml","t:perfume",perf)}
     ${rowSec("ເຄື່ອງສຳອາງ","t:beauty",beauty)}
+    ${catRows(["new","trial","t:perfume","t:beauty"])}
     ${CFG.mapUrl?`<a class="mapbar" href="${esc(CFG.mapUrl)}" target="_blank" rel="noopener"><span>📍</span><span><b>ໜ້າຮ້ານ nnz ວິຕາມິນ</b><small>${esc(CFG.address||"")}</small></span><span class="go">ນຳທາງ ›</span></a>`:""}
     <p class="note" style="text-align:center">ສິນຄ້າທັງໝົດ <span class="num">${P.length.toLocaleString("en-US")}</span> ລາຍການ · ຄົ້ນຫາດ້ວຍຊື່ ຫຼື ຍີ່ຫໍ້ໄດ້ທາງເທິງ</p>
   </div>`;
 }
 // ໜ້າສິນຄ້າທັງໝົດ: ແຖວປັດໄດ້ ແຍກຕາມໝວດ ໃຫ້ລູກຄ້າເຫັນວ່າຮ້ານມີຫຍັງແດ່
-function catRows(){
-  return NEEDS.map(n => {
+function catRows(skip=[]){
+  return NEEDS.filter(n=>!skip.includes(n.id)).map(n => {
     const arr = P.filter(p => n.id==="trial" ? !!p.trial : p.tags.includes(n.id)).sort((a,b)=>(b.stock?1:0)-(a.stock?1:0));
     if(!arr.length) return "";
     return `<section><div class="sechead"><h2>${esc(n.lb)} <span class="note num">(${arr.length})</span></h2><button class="more" data-need="${n.id}">ເບິ່ງທັງໝົດ</button></div><div class="row">${arr.slice(0,12).map(card).join("")}</div></section>`;
