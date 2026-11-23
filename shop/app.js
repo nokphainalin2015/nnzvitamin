@@ -315,6 +315,8 @@ function promoInfo(){
 }
 const payTotal = () => cartTotal() - promoInfo().off;
 const isSundayLA = () => { try{ return new Intl.DateTimeFormat("en-US",{weekday:"short",timeZone:"Asia/Vientiane"}).format(new Date())==="Sun"; }catch(e){ return new Date().getDay()===0; } };
+// ນ້ຳຫອມແບ່ງຂາຍ ຕ້ອງໂອນກ່ອນເທົ່ານັ້ນ ບໍ່ມີ COD (ເຈົ້າຂອງສັ່ງ 23/11)
+const perfSplit = () => cart.some(l => { const p = P.find(x=>x.id===l.id); return p && p.type==="perfume" && /^ຂວດແບ່ງ/.test(l.opt||""); });
 const shipFee = () => delivery==="rider" ? (+CFG.riderFee||0) : 0;
 const shipNote = () => !delivery ? "ຍັງບໍ່ເລືອກວິທີຈັດສົ່ງ" : delivery==="rider" ? (shipFee() ? kip(shipFee())+" (ທຸກບ່ອນໃນເມືອງ)" : "ແອັດມິນແຈ້ງ") : "ລູກຄ້າຈ່າຍເອງປາຍທາງ ຕາມບໍລິສັດຂົນສົ່ງ";
 const grandTotal = () => payTotal() + shipFee();
@@ -324,6 +326,7 @@ function orderText(){
   return `APP · ອໍເດີໃໝ່ຈາກແອັບ nnz\nລະຫັດອໍເດີ: ${orderCode}\n${lines}\nລວມຄ່າສິນຄ້າ: ${kip(cartTotal())}\n${promoInfo().off?`ໂຄດສ່ວນຫຼຸດ: ${String(CFG.promo.code).toUpperCase()} −${kip(promoInfo().off)}\n`:""}ຄ່າສົ່ງ: ${shipNote()}\nຍອດຕ້ອງຈ່າຍ: ${kip(grandTotal())}\nຈັດສົ່ງ: ${d.lb} (${d.sub})\n${d.id==='rider'?'ທີ່ຢູ່ / ຈຸດສົ່ງ':'ສາຂາຂົນສົ່ງ ('+d.lb.replace('ຂົນສົ່ງ ','')+')'}: ${cust.place||''}\n\nຊື່: ${cust.name||''}\nເບີໂທ: ${cust.phone||''}\nຈ່າຍແບບ: ${pay==="qr"?"ສະແກນ QR (ແນບສະລິບ)":"ເກັບເງິນປາຍທາງ (COD)"}`;
 }
 function renderCart(){
+  if(perfSplit() && pay==="cod"){ pay="qr"; store("nnz-pay",pay); }
   if(!cart.length) return `<div class="wrap"><h2>ກະຕ່າ</h2><div class="empty"><b>ກະຕ່າຍັງວ່າງ</b><span>ເລືອກສິນຄ້າ ແລ້ວກົດ "ໃສ່ກະຕ່າ"</span><button class="cta" data-tab-go="home" style="flex:none">ເລືອກສິນຄ້າ</button></div></div>`;
   return `<div class="wrap">
     <h2>ກະຕ່າ <span class="note num">(${cart.reduce((s,l)=>s+l.qty,0)} ຊິ້ນ)</span></h2>
@@ -352,7 +355,7 @@ function renderCart(){
     </div>`:""}
     <div class="fieldset" role="radiogroup" aria-label="ວິທີຈ່າຍເງິນ"><b>ວິທີຈ່າຍເງິນ</b>
       <label class="radio" for="py-qr"><input type="radio" id="py-qr" name="py" value="qr" ${pay==="qr"?'checked':''}><span>ສະແກນ QR ຈ່າຍເລີຍ<small>OnePay · LAO QR · ຈ່າຍໄດ້ທຸກທະນາຄານ</small></span></label>
-      <label class="radio" for="py-cod"><input type="radio" id="py-cod" name="py" value="cod" ${pay==="cod"?'checked':''}><span>ເກັບເງິນປາຍທາງ (COD)<small>ຈ່າຍເມື່ອຮັບເຄື່ອງ</small></span></label>
+      <label class="radio${perfSplit()?' off':''}" for="py-cod"><input type="radio" id="py-cod" name="py" value="cod" ${pay==="cod"?'checked':''} ${perfSplit()?'disabled':''}><span>ເກັບເງິນປາຍທາງ (COD)<small>${perfSplit()?'ນ້ຳຫອມແບ່ງຂາຍ ຕ້ອງໂອນກ່ອນ ບໍ່ມີເກັບເງິນປາຍທາງ':'ຈ່າຍເມື່ອຮັບເຄື່ອງ'}</small></span></label>
     </div>
     ${pay==="qr"&&CFG.payQr?`<div class="payqr">
       <p class="paystep"><b>1.</b> ${delivery ? `ໂອນ <span class="num">${kip(grandTotal())}</span> ໃຫ້ກົງຍອດ${shipFee()?" (ລວມຄ່າສົ່ງແລ້ວ)":" (ບໍ່ລວມຄ່າຂົນສົ່ງ ຈ່າຍປາຍທາງ)"}` : "ເລືອກວິທີຈັດສົ່ງກ່ອນ ຈຶ່ງຮູ້ຍອດທີ່ຕ້ອງໂອນ"}</p>
@@ -386,7 +389,28 @@ function render(){
   const cur = tab==="home"&&(query||filter) ? "all" : tab;
   document.querySelectorAll("nav.tabs button").forEach(b=>{ b.removeAttribute("aria-current"); if(b.dataset.tab===cur) b.setAttribute("aria-current","page"); });
   const n = cart.reduce((s,l)=>s+l.qty,0); const bd=$("#badge"); bd.hidden = !n; bd.textContent = n;
-  initCats();
+  initCats(); initRows();
+}
+// ແຖວສິນຄ້າ: ເລື່ອນເອງທີລະ 1 ອັນ ທຸກ 4 ວິ (ສະເພາະແຖວທີ່ເຫັນໃນຈໍ) · ລູກຄ້າແຕະ ຢຸດ 8 ວິ · ຮອດທ້າຍກັບໄປຕົ້ນ
+let rowTimer = null;
+function initRows(){
+  clearInterval(rowTimer);
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const rows = [...document.querySelectorAll("#view .row")]; if(!rows.length) return;
+  rows.forEach(r => { r._t = 0; ["touchstart","pointerdown","wheel"].forEach(ev=>r.addEventListener(ev, ()=>{ r._t = Date.now(); }, {passive:true})); });
+  let k = 0;
+  rowTimer = setInterval(()=>{
+    if(document.hidden || !document.body.contains(rows[0])) return;
+    k++;
+    rows.forEach((r,i) => {
+      if((k+i)%2) return; // ສະຫຼັບກັນ ບໍ່ເລື່ອນພ້ອມກັນທຸກແຖວ
+      if(Date.now()-r._t < 8000) return;
+      const b = r.getBoundingClientRect(); if(b.bottom < 0 || b.top > innerHeight) return;
+      const max = r.scrollWidth - r.clientWidth; if(max < 10) return;
+      const step = (r.firstElementChild ? r.firstElementChild.getBoundingClientRect().width : 160) + 10;
+      r.scrollTo({left: r.scrollLeft >= max - 5 ? 0 : Math.min(max, r.scrollLeft + step), behavior:"smooth"});
+    });
+  }, 2000);
 }
 // ໝວດສິນຄ້າຍອດນິຍົມ: ປັດໄດ້ ມີຈຸດບອກໜ້າ ແລະ ເລື່ອນເອງທຸກ 3.5 ວິ (ຢຸດເມື່ອລູກຄ້າແຕະ)
 let catTimer = null;
@@ -515,7 +539,7 @@ document.addEventListener("input", e => {
 });
 document.addEventListener("click", e => { if(e.target.closest("#sendWa") && !delivery){ e.preventDefault(); toast("ກະລຸນາເລືອກວິທີຈັດສົ່ງກ່ອນ"); const f=document.querySelector('[aria-label="ວິທີຈັດສົ່ງ"]'); if(f) f.scrollIntoView({behavior:"smooth",block:"center"}); } }, true);
 document.addEventListener("change", e => { if(e.target.name==="dl"){ delivery=e.target.value; store("nnz-dl2",delivery); render(); }
-  if(e.target.name==="py"){ pay=e.target.value; store("nnz-pay",pay); render(); } });
+  if(e.target.name==="py"){ if(e.target.value==="cod" && perfSplit()){ toast("ນ້ຳຫອມແບ່ງຂາຍ ຕ້ອງໂອນກ່ອນເທົ່ານັ້ນ"); render(); return; } pay=e.target.value; store("nnz-pay",pay); render(); } });
 $("#q").addEventListener("input", e => { query=e.target.value; if(query && tab!=="all") tab="all"; render(); });
 
 $("#proto").hidden = !CFG.sampleMode;
