@@ -22,7 +22,7 @@ window.NNZ_CONFIG = {
 
   // ແຖວທີ່ບໍ່ໃຫ້ສະແດງໃນແອັບ (id ຖັນ A) · r1478 Elevit ແບ່ງແຜງ ຍ້າຍໄປເປັນຕົວເລືອກແຍກແຜງໃນ r1479 ແລ້ວ
   hideIds: ["r1478","r541","r1126","r1508","r1474","r1298",
-    "r150","r151","r153","r93","r187","r188","r1355","r355","r494","r281","r87","r527","r94","r488","r489","r1130","r1122","r1109","r229"], // ແຖວແບ່ງເກົ່າ ລວມເຂົ້າຂວດໃຫຍ່ແລ້ວ (r1109 Youtheory B327→r277, r1130 Thompson Ginkgo B314→N314, r488 Neosporin S468→N468, r1355 KL Krill B162→N162, Elevit x2, Menevit, Tums, Carusos K2+D3, NTBT HSN Extra) + ເລີກຂາຍ (NTBT Zinc 100 N695, Tums Assorted Fruit 170, Neosporin ຫຼອດໃຫຍ່ B468, Natrol Gummies 10mg 200, NTBT Mag Glycinate N764, Versace Shower Gel A143, Whizkids Omega-3 N766, ກ່ອງໃສ່ວິຕາມິນ NNZ box C5, Lacues Firming N626, Twinings 3, L'il Critters Immune C, Kronolife, TheVASE)
+    "r150","r151","r153","r93","r187","r188","r1355","r355","r494","r281","r87","r527","r94","r488","r489","r1130","r1122","r1109","r229","r1495"], // ແຖວແບ່ງເກົ່າ ລວມເຂົ້າຂວດໃຫຍ່ແລ້ວ (r1495 Centrum Women B73→r1496, r1109 Youtheory B327→r277, r1130 Thompson Ginkgo B314→N314, r488 Neosporin S468→N468, r1355 KL Krill B162→N162, Elevit x2, Menevit, Tums, Carusos K2+D3, NTBT HSN Extra) + ເລີກຂາຍ (NTBT Zinc 100 N695, Tums Assorted Fruit 170, Neosporin ຫຼອດໃຫຍ່ B468, Natrol Gummies 10mg 200, NTBT Mag Glycinate N764, Versace Shower Gel A143, Whizkids Omega-3 N766, ກ່ອງໃສ່ວິຕາມິນ NNZ box C5, Lacues Firming N626, Twinings 3, L'il Critters Immune C, Kronolife, TheVASE)
 
   // ລາຄາໂປຣມີກຳນົດວັນ: ຕອນນີ້ຕັ້ງຢູ່ໜ້າແອັດມິນ (ຖັນ promo_ ໃນ Sheet) · ບ່ອນນີ້ໃຊ້ສຳຮອງເທົ່ານັ້ນ
   timedPromos: [],
