@@ -24,3 +24,14 @@ jobs:
           path: shop
       - id: d
         uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.d.outcome == 'failure'
+        run: sleep 45
+      - id: d2
+        if: steps.d.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+      - if: steps.d.outcome == 'failure' && steps.d2.outcome == 'failure'
+        run: sleep 90
+      - if: steps.d.outcome == 'failure' && steps.d2.outcome == 'failure'
+        uses: actions/deploy-pages@v4
