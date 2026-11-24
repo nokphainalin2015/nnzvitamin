@@ -86,7 +86,9 @@ function toProduct(r, i){
     full:num(r.price_full), was:num(r.price_old)||0,
     trials, trial: trials[0] || null,
     promo: (r.promo_until||"").trim() ? {id, label:r.promo_label||"", from:(r.promo_from||"").trim()||"2000-01-01", until:r.promo_until.trim(), full:num(r.promo_full), trial:(r.promo_trial||"").split("|").map(num)} : null,
-    stock: r.in_stock==="" ? true : yes(r.in_stock),
+    // ສິນຄ້າສັ່ງຈອງ: ຖັນ in_stock = pre (ຫຼື ຈອງ) · ຖັນ note = ວັນຄາດວ່າຮອດ
+    pre: /^(pre|preorder|ຈອງ)$/i.test(String(r.in_stock||"").trim()), eta: (r.note||"").trim(),
+    stock: r.in_stock==="" ? true : (yes(r.in_stock) || /^(pre|preorder|ຈອງ)$/i.test(String(r.in_stock).trim())),
     photo: r.photo || "", tiktok: r.tiktok || "", hue: hueOf(r.brand||nm),
     bk: brandOf(nm+" "+(r.brand||"")),
     find: (nm+" "+raw+" "+(r.name_en||"")+" "+(r.search||"")+(type==="beauty"?" ເຄື່ອງສຳອາງ ສຳອາງ ຄວາມງາມ cosmetic":"")).toLowerCase()
@@ -156,7 +158,7 @@ function pic(p){
 }
 function card(p){
   return `<button class="card" data-open="${esc(p.id)}" aria-label="${esc(p.nm)}">
-    <div class="pic">${pic(p)}${p.rank?`<span class="rank${p.rank<=3?' top':''}">🔥 ຂາຍດີ #${p.rank}</span>`:''}${!p.stock?'<span class="tag out">ໝົດຊົ່ວຄາວ</span>':(p.promoLabel?`<span class="tag promo">🎁 ${esc(p.promoLabel.split(' ຮອດ')[0])}</span>`:p.was>p.full?'<span class="tag">ຫຼຸດລາຄາ</span>':(p.tags.includes("sale")?`<span class="tag promo">🎁 ${esc(p.promoLabel?p.promoLabel.split(' ຮອດ')[0]:'ໂປຣ')}</span>`:''))}${p.trial?`<span class="tag trial">${/ແຜ່ນ/.test(p.trial.qty)?'ແຍກແຜ່ນໄດ້':/ແຜງ/.test(p.trial.qty)?'ແຍກແຜງໄດ້':'ມີຂວດແບ່ງ'}</span>`:''}${hasVid(p.id)?'<span class="vbadge">▶ ມີວິດີໂອ</span>':''}</div>
+    <div class="pic">${pic(p)}${p.rank?`<span class="rank${p.rank<=3?' top':''}">🔥 ຂາຍດີ #${p.rank}</span>`:''}${!p.stock?'<span class="tag out">ໝົດຊົ່ວຄາວ</span>':p.pre?'<span class="tag pre">🚚 ກຳລັງມາ · ຈອງໄດ້</span>':(p.promoLabel?`<span class="tag promo">🎁 ${esc(p.promoLabel.split(' ຮອດ')[0])}</span>`:p.was>p.full?'<span class="tag">ຫຼຸດລາຄາ</span>':(p.tags.includes("sale")?`<span class="tag promo">🎁 ${esc(p.promoLabel?p.promoLabel.split(' ຮອດ')[0]:'ໂປຣ')}</span>`:''))}${p.trial?`<span class="tag trial">${/ແຜ່ນ/.test(p.trial.qty)?'ແຍກແຜ່ນໄດ້':/ແຜງ/.test(p.trial.qty)?'ແຍກແຜງໄດ້':'ມີຂວດແບ່ງ'}</span>`:''}${hasVid(p.id)?'<span class="vbadge">▶ ມີວິດີໂອ</span>':''}</div>
     <div class="body"><div class="nm">${esc(p.nm)}</div><div class="meta">${esc(TYPE_LB[p.type]||"")}</div>
     <div class="pr">${p.full?`<b>${kip(p.full)}</b>`:`<b>${kip(p.trial.price)}</b>`}${p.was>p.full?`<s>${kip(p.was)}</s>`:''}${p.full&&p.trial?`<small>${/ແຜ່ນ/.test(p.trial.qty)?'ແຜ່ນລະ':/ແຜງ/.test(p.trial.qty)?'ແຜງລະ':'ແບ່ງລອງ'} ${kip(p.trial.price)}</small>`:(!p.full?'<small>ຂວດແບ່ງ</small>':'')}</div></div>
   </button>`;
@@ -322,7 +324,8 @@ const shipNote = () => !delivery ? "ຍັງບໍ່ເລືອກວິທ�
 const grandTotal = () => payTotal() + shipFee();
 function orderText(){
   const d = DELIVERY.find(x=>x.id===delivery) || {id:'', lb:'ຍັງບໍ່ເລືອກ', sub:'-'};
-  const lines = cart.map((l,i)=>`${i+1}. ${l.nm} (${l.opt}) x${l.qty} = ${kip(l.price*l.qty)}`).join("\n");
+  const isPre = id => (P.find(x=>x.id===id)||{}).pre;
+  const lines = cart.map((l,i)=>`${i+1}. ${l.nm} (${l.opt}) x${l.qty} = ${kip(l.price*l.qty)}${isPre(l.id)?' [ຈອງ · ສິນຄ້າກຳລັງມາ]':''}`).join("\n");
   return `APP · ອໍເດີໃໝ່ຈາກແອັບ nnz\nລະຫັດອໍເດີ: ${orderCode}\n${lines}\nລວມຄ່າສິນຄ້າ: ${kip(cartTotal())}\n${promoInfo().off?`ໂຄດສ່ວນຫຼຸດ: ${String(CFG.promo.code).toUpperCase()} −${kip(promoInfo().off)}\n`:""}ຄ່າສົ່ງ: ${shipNote()}\nຍອດຕ້ອງຈ່າຍ: ${kip(grandTotal())}\nຈັດສົ່ງ: ${d.lb} (${d.sub})\n${d.id==='rider'?'ທີ່ຢູ່ / ຈຸດສົ່ງ':'ສາຂາຂົນສົ່ງ ('+d.lb.replace('ຂົນສົ່ງ ','')+')'}: ${cust.place||''}\n\nຊື່: ${cust.name||''}\nເບີໂທ: ${cust.phone||''}\nຈ່າຍແບບ: ${pay==="qr"?"ສະແກນ QR (ແນບສະລິບ)":"ເກັບເງິນປາຍທາງ (COD)"}`;
 }
 function renderCart(){
@@ -330,7 +333,7 @@ function renderCart(){
   if(!cart.length) return `<div class="wrap"><h2>ກະຕ່າ</h2><div class="empty"><b>ກະຕ່າຍັງວ່າງ</b><span>ເລືອກສິນຄ້າ ແລ້ວກົດ "ໃສ່ກະຕ່າ"</span><button class="cta" data-tab-go="home" style="flex:none">ເລືອກສິນຄ້າ</button></div></div>`;
   return `<div class="wrap">
     <h2>ກະຕ່າ <span class="note num">(${cart.reduce((s,l)=>s+l.qty,0)} ຊິ້ນ)</span></h2>
-    ${cart.map((l,i)=>{const p=P.find(x=>x.id===l.id)||{hue:0,nm:l.nm,en:""};return `<div class="line"><div class="mini">${pic(p)}</div><div class="info"><b>${esc(l.nm)}</b><span>${esc(l.opt)} · ${kip(l.price)}</span></div>
+    ${cart.map((l,i)=>{const p=P.find(x=>x.id===l.id)||{hue:0,nm:l.nm,en:""};return `<div class="line"><div class="mini">${pic(p)}</div><div class="info"><b>${esc(l.nm)}</b><span>${esc(l.opt)} · ${kip(l.price)}</span>${p.pre?`<span class="prenote">🚚 ຈອງ · ສິນຄ້າກຳລັງມາ${p.eta?' · ຄາດວ່າຮອດ '+esc(p.eta):''}</span>`:''}</div>
       <div class="qty"><button data-dec="${i}" aria-label="ຫຼຸດ">−</button><span>${l.qty}</span><button data-inc="${i}" aria-label="ເພີ່ມ">+</button></div></div>`}).join("")}
     <div class="sumbox">
     <div class="total"><span>ລວມຄ່າສິນຄ້າ</span><span class="num">${kip(cartTotal())}</span></div>
@@ -469,14 +472,14 @@ function openProduct(id){
       <button class="close" data-x>ປິດ</button>
       <div class="hero${p.photo?' zoomable':''}" ${p.photo?'data-zoom role="button" aria-label="ກົດເພື່ອຂະຫຍາຍຮູບ"':''}>${heroPic(p)}${p.photo?'<span class="zhint">🔍 ກົດເບິ່ງຮູບໃຫຍ່</span>':''}</div>${p.photo?'':'<p class="note" style="margin:-6px 0 0">ຮູບປະກອບ · ສິນຄ້າຈິງອາດຕ່າງຈາກຮູບ</p>'}
       <div>${p.promoLabel?`<span class="rankline" style="background:#e52535;color:#fff;margin-right:4px">🎁 ${esc(p.promoLabel)}</span>`:''}${p.rank?`<span class="rankline">🔥 ສິນຄ້າຂາຍດີອັນດັບ ${p.rank} ຂອງຮ້ານ</span>`:''}<h2 style="font-size:20px">${esc(p.nm)}</h2><div class="note">${esc([p.brand,TYPE_LB[p.type],p.size].filter(Boolean).join(" · "))}</div></div>
-      <span class="stock ${p.stock?'':'out'}">${p.stock?'ມີສິນຄ້າ ພ້ອມສົ່ງ':'ໝົດຊົ່ວຄາວ · ກຳລັງນຳເຂົ້າ'}</span>
+      <span class="stock ${p.pre?'pre':p.stock?'':'out'}">${p.pre?'🚚 ກຳລັງມາຈາກອົດສະຕາລີ · ຈອງໄວ້ໄດ້'+(p.eta?' · ຄາດວ່າຮອດ '+esc(p.eta):''):p.stock?'ມີສິນຄ້າ ພ້ອມສົ່ງ':'ໝົດຊົ່ວຄາວ · ກຳລັງນຳເຂົ້າ'}</span>
       <div class="opts">
         ${p.full?`<button class="opt" data-opt="full" aria-pressed="${opt==='full'}"><span class="t">${FULL}</span><span class="s">${esc(p.size)||((sheet||strip)?'ທັງກ່ອງ':'ທັງຂວດ')}</span><span class="p">${kip(p.full)}</span>${p.was>p.full?`<s class="note num">${kip(p.was)}</s>`:''}</button>`:''}
         ${p.trials.map((t,k)=>`<button class="opt" data-opt="t${k}" aria-pressed="${opt==='t'+k}"><span class="t">${PART}</span><span class="s">${esc(t.qty)}</span><span class="p">${kip(t.price)}</span>${t.was>t.price?`<s class="note num">${kip(t.was)}</s>`:''}</button>`).join("")}
         ${p.full&&!p.trials.length?'<button class="opt" disabled><span class="t">ຂວດແບ່ງ</span><span class="s">ສິນຄ້ານີ້ບໍ່ມີຂວດແບ່ງ</span><span class="p">—</span></button>':''}
       </div>
       ${p.stock?`<div class="buyrow"><div class="qty"><button data-q="-1" aria-label="ຫຼຸດ">−</button><span>${qty}</span><button data-q="1" aria-label="ເພີ່ມ">+</button></div>
-        <button class="cta" data-add>ໃສ່ກະຕ່າ · <span class="num">${kip(price*qty)}</span></button></div>`
+        <button class="cta" data-add>${p.pre?'ຈອງ':'ໃສ່ກະຕ່າ'} · <span class="num">${kip(price*qty)}</span></button></div>`
       :`<a class="cta ghost" href="${waLink('ແຈ້ງເຕືອນເມື່ອ '+p.nm+(p.en?' ('+p.en+')':'')+' ເຂົ້າໃໝ່ ແດ່')}" target="_blank" rel="noopener">ແຈ້ງເຕືອນຂ້ອຍເມື່ອສິນຄ້າເຂົ້າ</a>
         <p class="note" style="margin:0">ກົດແລ້ວຈະເປີດ WhatsApp ພ້ອມຂໍ້ຄວາມ ໃຫ້ທ່ານກົດສົ່ງເອງ</p>`}
       ${(()=>{const vs=PRODUCT_VIDEOS?vidsOf(p.id):[]; if(!vs.length) return ""; const v=vs[Math.min(vi,vs.length-1)];
