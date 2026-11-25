@@ -24,6 +24,9 @@ window.NNZ_CONFIG = {
   hideIds: ["r1478","r541","r1126","r1508","r1474","r1298",
     "r150","r151","r153","r93","r187","r188","r1355","r355","r494","r281","r87","r527","r94","r488","r489","r1130","r1122","r1109","r229","r1495","r148"], // ແຖວແບ່ງເກົ່າ ລວມເຂົ້າຂວດໃຫຍ່ແລ້ວ (r1495 Centrum Women B73→r1496, r1109 Youtheory B327→r277, r1130 Thompson Ginkgo B314→N314, r488 Neosporin S468→N468, r1355 KL Krill B162→N162, Elevit x2, Menevit, Tums, Carusos K2+D3, NTBT HSN Extra) + ເລີກຂາຍ/ປິດ (Natures Care Kids Milk Calcium r148 ໝົດ ປິດ 24/11, NTBT Zinc 100 N695, Tums Assorted Fruit 170, Neosporin ຫຼອດໃຫຍ່ B468, Natrol Gummies 10mg 200, NTBT Mag Glycinate N764, Versace Shower Gel A143, Whizkids Omega-3 N766, ກ່ອງໃສ່ວິຕາມິນ NNZ box C5, Lacues Firming N626, Twinings 3, L'il Critters Immune C, Kronolife, TheVASE)
 
+  // Google Analytics: ນັບຄົນເຂົ້າແອັບ (ລະຫັດ G-xxxx ຈາກ analytics.google.com) · ປ່ອຍວ່າງ = ບໍ່ນັບ
+  gaId: "G-ZBEC23CJ66",
+
   // ລາຄາໂປຣມີກຳນົດວັນ: ຕອນນີ້ຕັ້ງຢູ່ໜ້າແອັດມິນ (ຖັນ promo_ ໃນ Sheet) · ບ່ອນນີ້ໃຊ້ສຳຮອງເທົ່ານັ້ນ
   timedPromos: [],
 

@@ -457,7 +457,15 @@ function openZoom(src, title){
   document.addEventListener("keydown",onKey);
   z.addEventListener("click",e=>{ e.stopPropagation(); if(e.target.closest("[data-zx]")) return close(); if(e.target.tagName==="IMG"){ const box=z.querySelector(".zbox"); const r=e.target.getBoundingClientRect(); const fx=(e.clientX-r.left)/r.width, fy=(e.clientY-r.top)/r.height; z.classList.toggle("big"); if(z.classList.contains("big")) requestAnimationFrame(()=>{ box.scrollLeft=fx*e.target.offsetWidth-box.clientWidth/2; box.scrollTop=fy*e.target.offsetHeight-box.clientHeight/2; }); } });
 }
+// ນັບຄົນເຂົ້າແອັບ (Google Analytics) · ຕັ້ງ gaId ໃນ config.js · ບໍ່ສົ່ງຊື່ ຫຼື ເບີໂທລູກຄ້າ
+function track(name, params){ try{ if(window.gtag) gtag("event", name, params||{}); }catch(e){} }
+(function(){ const id = CFG.gaId; if(!id || !/^G-[A-Z0-9]+$/.test(id)) return;
+  window.dataLayer = window.dataLayer || []; window.gtag = function(){ dataLayer.push(arguments); };
+  gtag("js", new Date()); gtag("config", id);
+  const sc = document.createElement("script"); sc.async = true; sc.src = "https://www.googletagmanager.com/gtag/js?id=" + id; document.head.appendChild(sc);
+})();
 function openProduct(id){
+  { const _p = P.find(x=>x.id===id); if(_p) track("view_item", {items:[{item_id:_p.id, item_name:_p.nm, item_brand:_p.brand||""}]}); }
   const p = P.find(x=>x.id===id); if(!p) return;
   let opt = p.full ? "full" : "t0", qty = 1, vi = 0;
   const optPrice = o => o==="full" ? p.full : p.trials[+o.slice(1)].price;
@@ -512,6 +520,7 @@ function openProduct(id){
       const ex = cart.find(l=>l.id===p.id && l.opt===optLb);
       if(ex) ex.qty+=qty; else cart.push({id:p.id, nm:p.nm, opt:optLb, price, qty});
       save(); close(); render(); toast("ໃສ່ກະຕ່າແລ້ວ");
+      track("add_to_cart", {items:[{item_id:p.id, item_name:p.nm, item_variant:optLb, quantity:qty, price}]});
     }
   });
   sh.querySelector("[data-x]").focus();
@@ -540,6 +549,7 @@ document.addEventListener("input", e => {
   const a = document.getElementById("sendWa"); if(a) a.href = waLink(orderText());
   const m = document.getElementById("msg"); if(m) m.value = orderText();
 });
+document.addEventListener("click", e => { if(e.target.closest("#sendWa") && delivery){ track("send_order", {items_count: cart.reduce((a,l)=>a+l.qty,0), delivery, pay}); } }, true);
 document.addEventListener("click", e => { if(e.target.closest("#sendWa") && !delivery){ e.preventDefault(); toast("ກະລຸນາເລືອກວິທີຈັດສົ່ງກ່ອນ"); const f=document.querySelector('[aria-label="ວິທີຈັດສົ່ງ"]'); if(f) f.scrollIntoView({behavior:"smooth",block:"center"}); } }, true);
 document.addEventListener("change", e => { if(e.target.name==="dl"){ delivery=e.target.value; store("nnz-dl2",delivery); render(); }
   if(e.target.name==="py"){ if(e.target.value==="cod" && perfSplit()){ toast("ນ້ຳຫອມແບ່ງຂາຍ ຕ້ອງໂອນກ່ອນເທົ່ານັ້ນ"); render(); return; } pay=e.target.value; store("nnz-pay",pay); render(); } });
